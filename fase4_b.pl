@@ -39,18 +39,15 @@ eval_work_(N, Conts) :-
     N > 0,
     continue([writeln('That\'s a nice number.')|Conts]).
 
-eval_end(_).
-
 eval_writeln(X, Conts) :-
     writeln(X),
     continue(Conts).
 
 continue([]).
+continue([end|_]).
 continue([work_(Number)|Conts]) :-
     eval_work_(Number, Conts).
 continue([loop(work)|Conts]) :-
     eval_loop_work(Conts).
-continue([end|Conts]) :-
-    eval_end(Conts).
 continue([writeln(X)|Conts]) :-
     eval_writeln(X, Conts).

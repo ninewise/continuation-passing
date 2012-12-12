@@ -164,7 +164,7 @@ eval(unwind, _, unwind) :- !,
 % handle/2
 eval(handle(G, X), Conts, true) :- !,
     (
-        eval(G, C, raise(X)),
+        eval(G, _, raise(X)),
         !
     ;
         eval(G, [], true)
