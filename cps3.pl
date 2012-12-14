@@ -95,8 +95,8 @@ eval(X is Y, Conts, R) :- !,
     continue(Conts, R).
 
 % 3     (;)/2
-eval((G1; G2), Conts, _) :- !,
-    (eval(G1, Conts, true); eval(G2, Conts, true)).
+eval((G1; G2), Conts, R) :- !,
+    (eval(G1, Conts, R); eval(G2, Conts, R)).
 
 % 4     >/2
 eval(X > Y, Conts, R) :- !,
@@ -144,8 +144,7 @@ eval(X == Y, Conts, R) :- !,
     continue(Conts, R).
 
 % end/0
-eval(end, _, true) :- !,
-    true.
+eval(end, _, true) :- !.
 
 % mark/1
 eval(mark(G), Conts, true) :- !,
