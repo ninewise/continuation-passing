@@ -58,7 +58,7 @@ product_([X|Xs], P) :-
     X \== 0,
     product_(Xs, P1),
     P is X * P1.
-product_([X|_], P) :-
+product_([X|_], _) :-
     X == 0,
     raise(0).
 
@@ -72,11 +72,13 @@ eval(G) :-
     eval(G, [], X),
     ( X = true ->
         true
+    ; X = end ->
+        true
     ; X = unwind ->
         writeln('ERROR: uncaught \'unwind\''),
         false
     ; X = raise(N) ->
-        format('ERROR: uncaught \'raise(~w)\'', N),
+        format('ERROR: uncaught \'raise(~w)\'\n', [N]),
         false
     ).
         
@@ -96,7 +98,11 @@ eval(X is Y, Conts, R) :- !,
 
 % 3     (;)/2
 eval((G1; G2), Conts, R) :- !,
-    (eval(G1, Conts, R); eval(G2, Conts, R)).
+    (
+        eval(G1, Conts, R)
+    ;
+        eval(G2, Conts, R)
+    ).
 
 % 4     >/2
 eval(X > Y, Conts, R) :- !,
@@ -144,38 +150,39 @@ eval(X == Y, Conts, R) :- !,
     continue(Conts, R).
 
 % end/0
-eval(end, _, true) :- !.
+eval(end, _, end) :- !.
 
 % mark/1
-eval(mark(G), Conts, true) :- !,
-    (
-        eval(G, _, unwind),
-        !
-    ; 
-        eval(G, [], true)
-    ),
-    continue(Conts, _).
+eval(mark(G), Conts, R) :- !,
+    eval(G, [], R1),
+    ( R1 = end ->
+        R = R1
+    ; R1 = raise(_) ->
+        R = R1
+    ;
+        continue(Conts, R)
+    ).
 
 % unwind/0
 eval(unwind, _, unwind) :- !,
     true.
 
 % handle/2
-eval(handle(G, X), Conts, true) :- !,
-    (
-        eval(G, _, raise(X)),
-        !
-    ;
-        eval(G, [], true)
-    ),
-    continue(Conts, _).
+eval(handle(G, X), Conts, R) :- !,
+    eval(G, [], R1),
+    ( R1 = raise(X) ->
+        continue(Conts, R)
+    ; R1 = true ->
+        continue(Conts, R)
+    ; 
+        R = R1
+    ).
 
 % raise/1
-eval(raise(X), _, raise(X)) :- !,
-    true.
+eval(raise(X), _, raise(X)) :- !.
 
 eval(true, Conts, R) :- !,
-    continue(Conts, true).
+    continue(Conts, R).
 
 eval(G, Conts, R) :- !,
     clause(G, NG),
